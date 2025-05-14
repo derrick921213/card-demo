@@ -11,7 +11,8 @@ from datetime import timedelta
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True, allow_headers="*")
 
-
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
 app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'root'
