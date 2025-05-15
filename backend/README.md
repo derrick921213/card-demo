@@ -16,6 +16,12 @@
 
 ---
 
+## 註記
+- `flask-pymysql` 使用外部修正包,添加指令如下
+```shell
+uv add "flask-pymysql @ git+https://github.com/derrick921213/flask-pymysql"
+```
+
 ## 環境安裝與啟動
 
 ### 1. 資料庫
