@@ -31,7 +31,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def row_to_card_dict(row):
-    keys = ['id', 'name', 'email', 'birthday', 'avatar', 'profession', 'created_at', 'updated_at']
+    keys = ['id', 'name', 'email', 'birthday', 'avatar', 'profession', 'created_at', 'updated_at', 'fb_link', 'line_link']
     d = dict(zip(keys, row))
     if d['birthday'] and hasattr(d['birthday'], 'strftime'):
         d['birthday'] = d['birthday'].strftime('%Y-%m-%d')
@@ -93,7 +93,7 @@ def login():
 def get_cards():
     user_id = get_jwt_identity()
     cur = mysql.connection.cursor()
-    cur.execute("SELECT id, name, email, birthday, avatar, profession, created_at, updated_at FROM cards WHERE user_id=%s", (user_id,))
+    cur.execute("SELECT id, name, email, birthday, avatar, profession, created_at, updated_at, fb_link, line_link FROM cards WHERE user_id=%s", (user_id,))
     cards = [row_to_card_dict(row) for row in cur.fetchall()]
     cur.close()
     return jsonify(cards)
@@ -108,6 +108,9 @@ def create_card():
     email = data.get('email')
     birthday = data.get('birthday')
     profession = data.get('profession')
+    fb_link = data.get('fb_link')
+    line_link = data.get('line_link')
+    
     avatar = None
     if birthday:
         birthday = str(birthday)[:10]
@@ -119,8 +122,8 @@ def create_card():
         file.save(avatar_path)
         avatar = f'/static/avatars/{filename}'
     cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO cards (user_id, name, email, birthday, avatar, profession) VALUES (%s, %s, %s, %s, %s, %s)",
-                (user_id, name, email, birthday, avatar, profession))
+    cur.execute("INSERT INTO cards (user_id, name, email, birthday, avatar, profession, fb_link, line_link) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                (user_id, name, email, birthday, avatar, profession, fb_link, line_link))
     mysql.connection.commit()
     cur.close()
     return jsonify({'msg': '卡片新增成功'})
@@ -137,6 +140,8 @@ def update_card(card_id):
     email = data.get('email')
     birthday = data.get('birthday')
     profession = data.get('profession')
+    fb_link = data.get('fb_link')
+    line_link = data.get('line_link')
     avatar = None
     if birthday:
         birthday = str(birthday)[:10]
@@ -156,8 +161,8 @@ def update_card(card_id):
         return jsonify({'msg': '卡片不存在'}), 404
     if not avatar:
         avatar = old[0]
-    cur.execute("UPDATE cards SET name=%s, email=%s, birthday=%s, avatar=%s, profession=%s WHERE id=%s AND user_id=%s",
-                (name, email, birthday, avatar, profession, card_id, user_id))
+    cur.execute("UPDATE cards SET name=%s, email=%s, birthday=%s, avatar=%s, profession=%s, fb_link=%s, line_link=%s WHERE id=%s AND user_id=%s",
+                (name, email, birthday, avatar, profession,fb_link,line_link, card_id, user_id))
     mysql.connection.commit()
     cur.close()
     return jsonify({'msg': '卡片更新成功'})
@@ -191,7 +196,7 @@ def delete_card(card_id):
 @app.route('/api/cards/<int:card_id>', methods=['GET'])
 def get_card_public(card_id):
     cur = mysql.connection.cursor()
-    cur.execute("SELECT id, name, email, birthday, avatar, profession, created_at, updated_at FROM cards WHERE id=%s", (card_id,))
+    cur.execute("SELECT id, name, email, birthday, avatar, profession, created_at, updated_at, fb_link, line_link FROM cards WHERE id=%s", (card_id,))
     row = cur.fetchone()
     cur.close()
     if not row:
